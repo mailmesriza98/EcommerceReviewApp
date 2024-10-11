@@ -1,4 +1,4 @@
-#E-Commerce Review Service with Spring Boot, Wiremock, Debezium, Kafka, SQL DB, and Redis
+# E-Commerce Review Service with Spring Boot, Wiremock, Debezium, Kafka, SQL DB, and Redis
 
 ## Project Overview
 
