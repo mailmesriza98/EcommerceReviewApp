@@ -1,36 +1,48 @@
-Project Overview
-This project is designed to implement a Review Service as part of a broader e-commerce platform. The service handles functionalities such as review submission, moderation by admins, and deletion by users. To ensure scalability and responsiveness, the service integrates a number of key technologies such as Spring Boot, Debezium, Kafka, SQL Database, and Redis. It also utilizes Wiremock for simulating dependent services during development and testing. Below is a step-by-step breakdown of the setup and design choices.
+# E-Commerce Review Service with Spring Boot, Wiremock, Debezium, Kafka, SQL DB, and Redis
 
-Steps
-Step 1: Setting up the Spring Boot Service
-The core of this system is built on Spring Boot, which simplifies the development of RESTful web services by providing a well-structured and configurable framework. In this step, we set up a basic Spring Boot project, including configurations for essential dependencies like Spring Data JPA for interacting with the SQL database, and Spring Web for exposing the RESTful API endpoints.
+## Project Overview
 
-Spring Boot allows you to quickly build and run the service locally, providing an embedded server, which simplifies the setup for microservices. In this case, the Review Service includes several REST endpoints for creating, reading, and deleting reviews, which can later be moderated by admins.
+This project implements a **Review Service** as part of an e-commerce platform. The service allows users to submit, view, and delete reviews, with admins able to moderate them. The project integrates **Spring Boot**, **Debezium**, **Kafka**, **SQL Database**, and **Redis**, with **Wiremock** for simulating dependent services. The following sections outline the key steps involved in building the project.
 
-Step 2: Integrating Kafka for Asynchronous Communication
-Since the platform supports real-time moderation, the Review Service needs to interact asynchronously with a Moderation Service. We use Apache Kafka to achieve this asynchronous, event-driven communication. Kafka acts as a message broker between the services. When a user submits a review, the service pushes a message onto a Kafka topic that the Moderation Service consumes.
+## Steps
 
-This step involves configuring Kafka topics and understanding the producer-consumer pattern in Kafka. The Review Service acts as the producer, publishing the new review data, and the Moderation Service, running independently, consumes these events.
+### Step 1: Setting up the Spring Boot Service
+The core of this system is built using **Spring Boot**, which simplifies the creation of RESTful web services. In this step:
+- We set up a basic Spring Boot application.
+- Configured dependencies for **Spring Data JPA** (for database interactions) and **Spring Web** (for exposing REST APIs).
+- The service includes endpoints for creating, reading, and deleting reviews, which can be moderated by admins.
+- The embedded server allows the service to be run locally for easier development.
 
-Step 3: Implementing Debezium for Data Change Capture
-To maintain data integrity and synchronization across services, we leverage Debezium, an open-source distributed platform that captures row-level changes in your database. This ensures that when the Moderation Service modifies the status of a review (e.g., from "pending" to "approved" or "rejected"), those changes are reflected in the Review Service’s database without requiring a direct connection between the two services.
+### Step 2: Integrating Kafka for Asynchronous Communication
+**Apache Kafka** is used for asynchronous communication between the Review Service and a **Moderation Service**:
+- **Kafka** serves as a message broker to ensure that user reviews are submitted to the Moderation Service for approval.
+- This step involves configuring Kafka topics for publishing new reviews and consuming moderation results.
+- The Review Service acts as a producer, publishing review events, while the Moderation Service acts as a consumer.
 
-In this step, we configure Debezium connectors to listen to the SQL database for changes, which are then streamed to Kafka topics. This ensures that any changes made by the Moderation Service are reflected back in the Review Service.
+### Step 3: Implementing Debezium for Data Change Capture
+To maintain data consistency across services, we integrate **Debezium**:
+- **Debezium** captures row-level changes in the SQL database and streams them to Kafka topics.
+- Changes made by the Moderation Service, such as approving or rejecting reviews, are automatically reflected in the Review Service’s database.
+- This step involves setting up Debezium connectors for change data capture and ensuring data synchronization without direct service-to-service communication.
 
-Step 4: Setting Up SQL Database for Persistent Data Storage
-For persistent storage of reviews and moderation data, we use a SQL database. This structured data store allows us to store reviews with fields such as review_id, product_id, user_id, rating, and content. SQL ensures that we can query, update, and delete reviews efficiently, making it ideal for applications where relational integrity and complex queries are required.
+### Step 4: Setting Up SQL Database for Persistent Data Storage
+The **SQL Database** stores review and moderation data persistently:
+- Reviews are stored with fields like `review_id`, `product_id`, `user_id`, `rating`, and `content`.
+- **Spring Data JPA** simplifies the interaction with the database by abstracting CRUD operations.
+- Database migrations are managed using tools like **Flyway** or **Liquibase** to handle schema changes.
 
-The Review Service interacts with the SQL database through Spring Data JPA, which abstracts away the boilerplate code for CRUD operations and makes database interactions more seamless. In this step, we also set up database migrations using tools like Flyway or Liquibase to version and manage schema changes.
+### Step 5: Introducing Redis for Caching
+**Redis** is introduced as a caching layer to reduce latency and improve performance:
+- Redis stores frequently accessed data (such as recent reviews) in memory.
+- The Review Service first checks Redis before querying the SQL database, improving response times.
+- Redis helps to manage temporary data such as in-progress moderation results or cached review information.
 
-Step 5: Introducing Redis for Caching
-To reduce latency and improve performance, especially under high traffic, Redis is introduced as a caching layer. Redis stores frequently accessed data such as recently created reviews or reviews for a specific product in memory, significantly reducing the time it takes to fetch this data compared to querying the SQL database directly.
+### Step 6: Local Testing and Service Simulation with Wiremock
+For local testing, **Wiremock** is used to mock the Moderation Service:
+- Wiremock allows the Review Service to be tested independently of the Moderation Service by simulating its responses.
+- Mock endpoints return predefined responses, enabling local development and testing without full service integration.
+- This step allows the testing of different scenarios, such as varying response times or network failures.
 
-In this step, Redis is set up as a cache for specific endpoints, like fetching reviews by product. The Review Service checks the Redis cache before querying the SQL database, thus improving response times. Redis also helps manage temporary data, such as in-progress moderation results.
+## Conclusion
+This project combines several technologies—**Spring Boot**, **Kafka**, **Debezium**, **SQL**, and **Redis**—to create a scalable and resilient Review Service. It leverages **Wiremock** for local testing, allowing the service to be developed and tested in isolation. Future improvements could include adding security, optimizing caching, and scaling the Kafka infrastructure.
 
-Step 6: Local Testing and Service Simulation with Wiremock
-For local testing and development, we use Wiremock to mock the Moderation Service. This allows the Review Service to run and be tested independently, without requiring the full e-commerce ecosystem to be deployed. Wiremock helps simulate the behavior of the Moderation Service, so you can mock responses for different review states (e.g., approved, rejected).
-
-This step involves creating mock services and endpoints with Wiremock, which can return predefined responses. This is crucial for testing how the Review Service behaves when it receives different types of feedback from the Moderation Service. Wiremock also supports various testing scenarios, such as network failures or slow responses, making it a valuable tool for testing the robustness of the Review Service.
-
-Conclusion
-By using a combination of Spring Boot, Kafka, Debezium, SQL, Redis, and Wiremock, this e-commerce Review Service is designed to be scalable, resilient, and responsive. It ensures efficient data processing and caching while allowing for easy local testing and integration with other microservices in the system. Future enhancements could include adding security layers, more advanced caching strategies, and scaling the Kafka infrastructure to handle larger volumes of data.
