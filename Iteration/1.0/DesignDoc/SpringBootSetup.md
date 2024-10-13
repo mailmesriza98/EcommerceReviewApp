@@ -132,3 +132,31 @@ Response:
 }
 ```
 
+ #### how will the moderation service communicate back to app via kafka?
+
+##### Kafka Configuration
+Topic: review-moderation
+Producer: Sends review messages from the Review service to the Moderation service.
+Consumer: The Moderation service consumes the review messages and processes them.
+
+This structure will allow the Reviews service to understand the moderation result and update the relevant review in its database.
+
+##### Kafka Configuration for Reviews Service (Consumer):
+
+The Reviews service should be configured to listen to the review-moderation-feedback topic.
+We need to set up a Kafka consumer in the Reviews service that listens for moderation feedback messages and updates the review status in the database.
+Kafka Configuration for Moderation Service (Producer):
+
+After the Moderation service processes a review, it will publish the result to the review-moderation-feedback topic.
+You need to set up a Kafka producer in the Moderation service to publish these moderation results.
+
+When the Moderation service processes a review, it can publish a message to the review-moderation-feedback topic with information like:
+```json
+{
+  "reviewId": 123,
+  "status": "approved",  // could be "rejected" or "pending"
+  "moderationComments": "Looks good!"
+}
+```
+
+This structure will allow the Reviews service to understand the moderation result and update the relevant review in its database.
