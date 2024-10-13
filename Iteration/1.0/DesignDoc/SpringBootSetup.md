@@ -28,3 +28,107 @@ This document provides a detailed overview of how to set up the **Review** and *
 **Sample Request**:
 ```bash
 GET /reviews?product_id=123&page=1
+```
+
+which returns
+```json
+[
+  {
+    "review_id": 1,
+    "product_id": "123",
+    "title": "Great product",
+    "text": "Loved the quality!",
+    "rating": 5,
+    "user_id": "456"
+  },
+  ...
+]
+```
+
+### 2. POST Review
+Endpoint: /reviews
+
+Method: POST
+
+Description: Submits a new product review. After the review is posted, it is sent to the Moderation service for approval via Kafka.
+
+Request Body:
+
+```json
+{
+  "product_id": "123",
+  "title": "Great product",
+  "text": "The product was amazing!",
+  "rating": 5,
+  "user_id": "456"
+}
+```
+
+Response:
+```json
+{
+  "status": "Review submitted for moderation"
+}
+```
+### 3. PUT Review
+Endpoint: /reviews/{review_id}
+
+Method: PUT
+
+Description: Updates an existing review.
+
+Request Body:
+```json
+{
+  "title": "Updated title",
+  "text": "Updated review text",
+  "rating": 4
+}
+```
+
+```json
+{
+  "status": "Review updated successfully"
+}
+```
+
+### 4. DELETE Review
+Endpoint: /reviews/{review_id}
+
+Method: DELETE
+
+Description: Deletes a review.
+
+Response:
+
+```json
+{
+  "status": "Review deleted"
+}
+```
+
+##Moderation Service Endpoints
+
+### 1. POST Moderation Decision
+Endpoint: /moderation/reviews/{review_id}
+
+Method: POST
+
+Description: Receives the moderation decision for a review. The Moderation service is triggered via Kafka messages.
+
+Request Body:
+
+```json
+{
+  "decision": "approved" | "rejected"
+}
+```
+
+Response:
+
+```json
+{
+  "status": "Moderation decision recorded"
+}
+```
+
